@@ -77,7 +77,7 @@
 		};
 
 		leds0: led-controller@10000200 {
-			compatible = "brcm,bcm6318-leds";
+			compatible = "brcm,bcm6328-leds";
 			#address-cells = <1>;
 			#size-cells = <0>;
 			reg = <0x10000200 0x24>;
