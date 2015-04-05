@@ -100,3 +100,36 @@
 		default-state = "on";
 	};
 };
+
+&nflash {
+	status = "ok";
+
+	nandcs@0 {
+		compatible = "brcm,nandcs";
+		#size-cells = <1>;
+		#address-cells = <1>;
+		reg = <0>;
+		nand-ecc-step-size = <512>;
+		nand-ecc-strength = <15>;
+		nand-on-flash-bbt;
+		brcm,nand-oob-sector-size = <64>;
+
+		cfe@0 {
+			label = "cfe";
+			reg = <0x0000000 0x0020000>;
+			read-only;
+		};
+
+		linux@20000 {
+			label = "linux";
+			reg = <0x0020000 0x7ae0000>;
+			read-only;
+		};
+
+		data@7b00000 {
+			label = "data";
+			reg = <0x7b00000 0x0500000>;
+			read-only;
+		};
+	};
+};
