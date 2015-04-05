@@ -1,0 +1,102 @@
+/dts-v1/;
+
+/include/ "bcm63268.dtsi"
+
+/ {
+	model = "Comtrend VR-3032u";
+	compatible = "comtrend,vr-3032u", "brcm,bcm63268";
+
+	gpio-keys-polled {
+		compatible = "gpio-keys-polled";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		poll-interval = <20>;
+		debounce-interval = <60>;
+
+		reset {
+			label = "reset";
+			gpios = <&gpio1 0 1>;
+			linux,code = <0x198>;
+		};
+		wps {
+			label = "wps";
+			gpios = <&gpio1 1 1>;
+			linux,code = <0x211>;
+		};
+	};
+};
+
+&leds0 {
+	status = "ok";
+	brcm,serial-leds;
+
+	gphy0_spd0@0 {
+		reg = <0>;
+		brcm,hardware-controlled;
+		brcm,link-signal-sources = <0>;
+	};
+	gphy0_spd1@1 {
+		reg = <1>;
+		brcm,hardware-controlled;
+		brcm,link-signal-sources = <1>;
+	};
+	inet_red@2 {
+		reg = <2>;
+		active-low;
+		label = "VR-3032u:red:inet";
+	};
+	dsl_green@3 {
+		reg = <3>;
+		active-low;
+		label = "VR-3032u:green:dsl";
+	};
+	usb_green@4 {
+		reg = <4>;
+		active-low;
+		label = "VR-3032u:green:usb";
+	};
+	wps_green@7 {
+		reg = <7>;
+		active-low;
+		label = "VR-3032u:green:wps";
+	};
+	inet_green@8 {
+		reg = <8>;
+		active-low;
+		label = "VR-3032u:green:inet";
+	};
+	ephy0_act@9 {
+		reg = <9>;
+		brcm,hardware-controlled;
+	};
+	ephy1_act@10 {
+		reg = <10>;
+		brcm,hardware-controlled;
+	};
+	ephy2_act@11 {
+		reg = <11>;
+		brcm,hardware-controlled;
+	};
+	gphy0_act@12 {
+		reg = <12>;
+		brcm,hardware-controlled;
+	};
+	ephy0_spd@13 {
+		reg = <13>;
+		brcm,hardware-controlled;
+	};
+	ephy1_spd@14 {
+		reg = <14>;
+		brcm,hardware-controlled;
+	};
+	ephy2_spd@15 {
+		reg = <15>;
+		brcm,hardware-controlled;
+	};
+	power_green@20 {
+		reg = <20>;
+		active-low;
+		label = "VR-3032u:green:power";
+		default-state = "on";
+	};
+};
