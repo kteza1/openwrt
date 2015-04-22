@@ -1,0 +1,74 @@
+From 36fe97635826d54d07c51a5953148235b7dd6a04 Mon Sep 17 00:00:00 2001
+From: Florian Fainelli <f.fainelli@gmail.com>
+Date: Tue, 7 Apr 2015 13:34:00 -0700
+Subject: [PATCH 7800/9216] MIPS: BMIPS: Move post DMA flush implementation to
+ common header
+
+arch/mips/include/asm/mach-bmips/dma-coherence.h contains the
+plat_post_dma_flush implementation which is not specific to mach-bmips,
+but required for all BMIPS-based systems.
+
+Move plat_post_dma_flush to arch/mips/include/asm/bmips.h, rename it to
+bmips_post_dma_flush such that other platforms like bcm63xx can utilize
+it.
+
+Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
+Cc: linux-mips@linux-mips.org
+Cc: cernekee@gmail.com
+Cc: jogo@openwrt.org
+Patchwork: https://patchwork.linux-mips.org/patch/9724/
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+---
+ arch/mips/include/asm/bmips.h                    | 16 ++++++++++++++++
+ arch/mips/include/asm/mach-bmips/dma-coherence.h | 16 +---------------
+ 2 files changed, 17 insertions(+), 15 deletions(-)
+
+--- a/arch/mips/include/asm/bmips.h
++++ b/arch/mips/include/asm/bmips.h
+@@ -122,6 +122,22 @@ static inline void bmips_write_zscm_reg(
+ 	barrier();
+ }
+ 
++static inline void bmips_post_dma_flush(struct device *dev)
++{
++	void __iomem *cbr = BMIPS_GET_CBR();
++	u32 cfg;
++
++	if (boot_cpu_type() != CPU_BMIPS3300 &&
++	    boot_cpu_type() != CPU_BMIPS4350 &&
++	    boot_cpu_type() != CPU_BMIPS4380)
++		return;
++
++	/* Flush stale data out of the readahead cache */
++	cfg = __raw_readl(cbr + BMIPS_RAC_CONFIG);
++	__raw_writel(cfg | 0x100, cbr + BMIPS_RAC_CONFIG);
++	__raw_readl(cbr + BMIPS_RAC_CONFIG);
++}
++
+ #endif /* !defined(__ASSEMBLY__) */
+ 
+ #endif /* _ASM_BMIPS_H */
+--- a/arch/mips/include/asm/mach-bmips/dma-coherence.h
++++ b/arch/mips/include/asm/mach-bmips/dma-coherence.h
+@@ -49,20 +49,6 @@ static inline int plat_device_is_coheren
+ 	return 0;
+ }
+ 
+-static inline void plat_post_dma_flush(struct device *dev)
+-{
+-	void __iomem *cbr = BMIPS_GET_CBR();
+-	u32 cfg;
+-
+-	if (boot_cpu_type() != CPU_BMIPS3300 &&
+-	    boot_cpu_type() != CPU_BMIPS4350 &&
+-	    boot_cpu_type() != CPU_BMIPS4380)
+-		return;
+-
+-	/* Flush stale data out of the readahead cache */
+-	cfg = __raw_readl(cbr + BMIPS_RAC_CONFIG);
+-	__raw_writel(cfg | 0x100, cbr + BMIPS_RAC_CONFIG);
+-	__raw_readl(cbr + BMIPS_RAC_CONFIG);
+-}
++#define plat_post_dma_flush	bmips_post_dma_flush
+ 
+ #endif /* __ASM_MACH_BMIPS_DMA_COHERENCE_H */

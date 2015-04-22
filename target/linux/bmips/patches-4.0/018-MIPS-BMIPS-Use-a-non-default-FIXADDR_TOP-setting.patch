@@ -1,0 +1,47 @@
+From 66cc8ff3eb150850cd9230e3aae6c73dee93b06b Mon Sep 17 00:00:00 2001
+From: Kevin Cernekee <cernekee@gmail.com>
+Date: Thu, 25 Dec 2014 09:49:16 -0800
+Subject: [PATCH 18/22] MIPS: BMIPS: Use a non-default FIXADDR_TOP setting
+
+This will be required to support BMIPS3300 platforms.
+
+Signed-off-by: Kevin Cernekee <cernekee@gmail.com>
+Cc: f.fainelli@gmail.com
+Cc: jaedon.shin@gmail.com
+Cc: abrestic@chromium.org
+Cc: tglx@linutronix.de
+Cc: jason@lakedaemon.net
+Cc: jogo@openwrt.org
+Cc: arnd@arndb.de
+Cc: computersforpeace@gmail.com
+Cc: linux-mips@linux-mips.org
+Cc: devicetree@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Patchwork: https://patchwork.linux-mips.org/patch/8854/
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+---
+ arch/mips/include/asm/mach-bmips/spaces.h | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+ create mode 100644 arch/mips/include/asm/mach-bmips/spaces.h
+
+--- /dev/null
++++ b/arch/mips/include/asm/mach-bmips/spaces.h
+@@ -0,0 +1,18 @@
++/*
++ * This file is subject to the terms and conditions of the GNU General Public
++ * License.  See the file "COPYING" in the main directory of this archive
++ * for more details.
++ *
++ * Copyright (C) 1994 - 1999, 2000, 03, 04 Ralf Baechle
++ * Copyright (C) 2000, 2002  Maciej W. Rozycki
++ * Copyright (C) 1990, 1999, 2000 Silicon Graphics, Inc.
++ */
++#ifndef _ASM_BMIPS_SPACES_H
++#define _ASM_BMIPS_SPACES_H
++
++/* Avoid collisions with system base register (SBR) region on BMIPS3300 */
++#define FIXADDR_TOP		((unsigned long)(long)(int)0xff000000)
++
++#include <asm/mach-generic/spaces.h>
++
++#endif /* __ASM_BMIPS_SPACES_H */

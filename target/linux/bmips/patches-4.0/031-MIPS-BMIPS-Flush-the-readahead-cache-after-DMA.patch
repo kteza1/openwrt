@@ -1,0 +1,49 @@
+From 554b7f56b998c72316ab2d5c21963512fd6c9a5e Mon Sep 17 00:00:00 2001
+From: Ralf Baechle <ralf@linux-mips.org>
+Date: Fri, 27 Mar 2015 15:17:31 +0100
+Subject: [PATCH] MIPS: BMIPS: Flush the readahead cache after DMA.
+
+BMIPS 3300/435x/438x CPUs have a readahead cache that is separate from
+the L1/L2.  During a DMA operation, accesses adjacent to a DMA buffer
+may cause parts of the DMA buffer to be prefetched into the RAC.  To
+avoid possible coherency problems, flush the RAC upon DMA completion.
+
+Derived from Kevin Cernekee's https://patchwork.linux-mips.org/patch/9602/.
+
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+---
+ arch/mips/include/asm/mach-bmips/dma-coherence.h | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+--- a/arch/mips/include/asm/mach-bmips/dma-coherence.h
++++ b/arch/mips/include/asm/mach-bmips/dma-coherence.h
+@@ -15,6 +15,10 @@
+ #ifndef __ASM_MACH_BMIPS_DMA_COHERENCE_H
+ #define __ASM_MACH_BMIPS_DMA_COHERENCE_H
+ 
++#include <asm/bmips.h>
++#include <asm/cpu-type.h>
++#include <asm/cpu.h>
++
+ struct device;
+ 
+ extern dma_addr_t plat_map_dma_mem(struct device *dev, void *addr, size_t size);
+@@ -47,6 +51,18 @@ static inline int plat_device_is_coheren
+ 
+ static inline void plat_post_dma_flush(struct device *dev)
+ {
++	void __iomem *cbr = BMIPS_GET_CBR();
++	u32 cfg;
++
++	if (boot_cpu_type() != CPU_BMIPS3300 &&
++	    boot_cpu_type() != CPU_BMIPS4350 &&
++	    boot_cpu_type() != CPU_BMIPS4380)
++		return;
++
++	/* Flush stale data out of the readahead cache */
++	cfg = __raw_readl(cbr + BMIPS_RAC_CONFIG);
++	__raw_writel(cfg | 0x100, cbr + BMIPS_RAC_CONFIG);
++	__raw_readl(cbr + BMIPS_RAC_CONFIG);
+ }
+ 
+ #endif /* __ASM_MACH_BMIPS_DMA_COHERENCE_H */

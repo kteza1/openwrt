@@ -1,0 +1,34 @@
+From 68ba7cb083300409eb92282417db4c179081ade3 Mon Sep 17 00:00:00 2001
+From: Florian Fainelli <f.fainelli@gmail.com>
+Date: Tue, 7 Apr 2015 13:34:01 -0700
+Subject: [PATCH 7801/9216] MIPS: DMA: Allow platforms to override only the
+ post DMA hook
+
+Instead of having platforms to copy the entirety of
+mach-generic/dma-coherence.h, check whether these platforms have already
+defined a plat_post_dma_flush hook, and if not, provide an inline stub.
+
+Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
+Cc: linux-mips@linux-mips.org
+Cc: cernekee@gmail.com
+Cc: jogo@openwrt.org
+Patchwork: https://patchwork.linux-mips.org/patch/9725/
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+---
+ arch/mips/include/asm/mach-generic/dma-coherence.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+--- a/arch/mips/include/asm/mach-generic/dma-coherence.h
++++ b/arch/mips/include/asm/mach-generic/dma-coherence.h
+@@ -52,9 +52,11 @@ static inline int plat_device_is_coheren
+ 	return coherentio;
+ }
+ 
++#ifndef plat_post_dma_flush
+ static inline void plat_post_dma_flush(struct device *dev)
+ {
+ }
++#endif
+ 
+ #ifdef CONFIG_SWIOTLB
+ static inline dma_addr_t phys_to_dma(struct device *dev, phys_addr_t paddr)

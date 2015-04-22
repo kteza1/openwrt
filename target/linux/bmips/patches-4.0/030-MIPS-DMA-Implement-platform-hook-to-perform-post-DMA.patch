@@ -1,0 +1,117 @@
+From 0acbfc66d09e97e5a01e7a23ac7e99f360ff851b Mon Sep 17 00:00:00 2001
+From: Ralf Baechle <ralf@linux-mips.org>
+Date: Fri, 27 Mar 2015 15:10:30 +0100
+Subject: [PATCH 6359/9216] MIPS: DMA: Implement platform hook to perform
+ post-DMA cache flushes.
+
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+---
+ arch/mips/include/asm/mach-ath25/dma-coherence.h         | 4 ++++
+ arch/mips/include/asm/mach-bmips/dma-coherence.h         | 4 ++++
+ arch/mips/include/asm/mach-cavium-octeon/dma-coherence.h | 4 ++++
+ arch/mips/include/asm/mach-generic/dma-coherence.h       | 4 ++++
+ arch/mips/include/asm/mach-ip27/dma-coherence.h          | 4 ++++
+ arch/mips/include/asm/mach-ip32/dma-coherence.h          | 4 ++++
+ arch/mips/include/asm/mach-jazz/dma-coherence.h          | 4 ++++
+ arch/mips/include/asm/mach-loongson/dma-coherence.h      | 4 ++++
+ arch/mips/mm/dma-default.c                               | 4 +++-
+ 9 files changed, 35 insertions(+), 1 deletion(-)
+
+--- a/arch/mips/include/asm/mach-ath25/dma-coherence.h
++++ b/arch/mips/include/asm/mach-ath25/dma-coherence.h
+@@ -79,4 +79,8 @@ static inline int plat_device_is_coheren
+ #endif
+ }
+ 
++static inline void plat_post_dma_flush(struct device *dev)
++{
++}
++
+ #endif /* __ASM_MACH_ATH25_DMA_COHERENCE_H */
+--- a/arch/mips/include/asm/mach-bmips/dma-coherence.h
++++ b/arch/mips/include/asm/mach-bmips/dma-coherence.h
+@@ -45,4 +45,8 @@ static inline int plat_device_is_coheren
+ 	return 0;
+ }
+ 
++static inline void plat_post_dma_flush(struct device *dev)
++{
++}
++
+ #endif /* __ASM_MACH_BMIPS_DMA_COHERENCE_H */
+--- a/arch/mips/include/asm/mach-cavium-octeon/dma-coherence.h
++++ b/arch/mips/include/asm/mach-cavium-octeon/dma-coherence.h
+@@ -57,6 +57,10 @@ static inline int plat_device_is_coheren
+ 	return 1;
+ }
+ 
++static inline void plat_post_dma_flush(struct device *dev)
++{
++}
++
+ dma_addr_t phys_to_dma(struct device *dev, phys_addr_t paddr);
+ phys_addr_t dma_to_phys(struct device *dev, dma_addr_t daddr);
+ 
+--- a/arch/mips/include/asm/mach-generic/dma-coherence.h
++++ b/arch/mips/include/asm/mach-generic/dma-coherence.h
+@@ -52,6 +52,10 @@ static inline int plat_device_is_coheren
+ 	return coherentio;
+ }
+ 
++static inline void plat_post_dma_flush(struct device *dev)
++{
++}
++
+ #ifdef CONFIG_SWIOTLB
+ static inline dma_addr_t phys_to_dma(struct device *dev, phys_addr_t paddr)
+ {
+--- a/arch/mips/include/asm/mach-ip27/dma-coherence.h
++++ b/arch/mips/include/asm/mach-ip27/dma-coherence.h
+@@ -58,6 +58,10 @@ static inline int plat_dma_supported(str
+ 	return 1;
+ }
+ 
++static inline void plat_post_dma_flush(struct device *dev)
++{
++}
++
+ static inline int plat_device_is_coherent(struct device *dev)
+ {
+ 	return 1;		/* IP27 non-cohernet mode is unsupported */
+--- a/arch/mips/include/asm/mach-ip32/dma-coherence.h
++++ b/arch/mips/include/asm/mach-ip32/dma-coherence.h
+@@ -80,6 +80,10 @@ static inline int plat_dma_supported(str
+ 	return 1;
+ }
+ 
++static inline void plat_post_dma_flush(struct device *dev)
++{
++}
++
+ static inline int plat_device_is_coherent(struct device *dev)
+ {
+ 	return 0;		/* IP32 is non-cohernet */
+--- a/arch/mips/include/asm/mach-jazz/dma-coherence.h
++++ b/arch/mips/include/asm/mach-jazz/dma-coherence.h
+@@ -48,6 +48,10 @@ static inline int plat_dma_supported(str
+ 	return 1;
+ }
+ 
++static inline void plat_post_dma_flush(struct device *dev)
++{
++}
++
+ static inline int plat_device_is_coherent(struct device *dev)
+ {
+ 	return 0;
+--- a/arch/mips/include/asm/mach-loongson/dma-coherence.h
++++ b/arch/mips/include/asm/mach-loongson/dma-coherence.h
+@@ -78,4 +78,8 @@ static inline int plat_device_is_coheren
+ #endif /* CONFIG_DMA_NONCOHERENT */
+ }
+ 
++static inline void plat_post_dma_flush(struct device *dev)
++{
++}
++
+ #endif /* __ASM_MACH_LOONGSON_DMA_COHERENCE_H */

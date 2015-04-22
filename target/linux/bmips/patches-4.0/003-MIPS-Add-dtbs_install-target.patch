@@ -1,0 +1,47 @@
+From eb2236ea580bb21c954c889cc3dc05b3e98238cd Mon Sep 17 00:00:00 2001
+From: Andrew Bresticker <abrestic@chromium.org>
+Date: Thu, 25 Dec 2014 09:48:58 -0800
+Subject: [PATCH 3/3] MIPS: Add dtbs_install target
+
+Add the dtbs_install Makefile target to install the dtb files into
+$INSTALL_DTBS_PATH.
+
+Signed-off-by: Andrew Bresticker <abrestic@chromium.org>
+Tested-by: Kevin Cernekee <cernekee@gmail.com>
+Cc: f.fainelli@gmail.com
+Cc: jaedon.shin@gmail.com
+Cc: tglx@linutronix.de
+Cc: jason@lakedaemon.net
+Cc: jogo@openwrt.org
+Cc: arnd@arndb.de
+Cc: computersforpeace@gmail.com
+Cc: linux-mips@linux-mips.org
+Cc: devicetree@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Patchwork: https://patchwork.linux-mips.org/patch/8836/
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+---
+ arch/mips/Makefile | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+--- a/arch/mips/Makefile
++++ b/arch/mips/Makefile
+@@ -376,6 +376,10 @@ PHONY += dtbs
+ dtbs: scripts
+ 	$(Q)$(MAKE) $(build)=arch/mips/boot/dts
+ 
++PHONY += dtbs_install
++dtbs_install:
++	$(Q)$(MAKE) $(dtbinst)=arch/mips/boot/dts
++
+ archprepare:
+ ifdef CONFIG_MIPS32_N32
+ 	@echo '  Checking missing-syscalls for N32'
+@@ -416,6 +420,7 @@ define archhelp
+ 	echo '  uImage.lzma          - U-Boot image (lzma)'
+ 	echo '  uImage.lzo           - U-Boot image (lzo)'
+ 	echo '  dtbs                 - Device-tree blobs for enabled boards'
++	echo '  dtbs_install         - Install dtbs to $(INSTALL_DTBS_PATH)'
+ 	echo
+ 	echo '  These will be default as appropriate for a configured platform.'
+ endef

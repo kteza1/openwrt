@@ -1,0 +1,37 @@
+From 7e229fa07da10ee3dc3f88989b515293758c42eb Mon Sep 17 00:00:00 2001
+From: Kevin Cernekee <cernekee@gmail.com>
+Date: Thu, 25 Dec 2014 09:49:01 -0800
+Subject: [PATCH 05/22] IRQCHIP: Update docs regarding irq_domain_add_tree()
+
+Several drivers now use this API, including the ARM GIC driver, so remove
+the outdated comment.
+
+Signed-off-by: Kevin Cernekee <cernekee@gmail.com>
+Cc: f.fainelli@gmail.com
+Cc: jaedon.shin@gmail.com
+Cc: abrestic@chromium.org
+Cc: tglx@linutronix.de
+Cc: jason@lakedaemon.net
+Cc: jogo@openwrt.org
+Cc: computersforpeace@gmail.com
+Cc: linux-mips@linux-mips.org
+Cc: devicetree@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Patchwork: https://patchwork.linux-mips.org/patch/8839/
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+---
+ Documentation/IRQ-domain.txt | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+--- a/Documentation/IRQ-domain.txt
++++ b/Documentation/IRQ-domain.txt
+@@ -95,8 +95,7 @@ since it doesn't need to allocate a tabl
+ hwirq number.  The disadvantage is that hwirq to IRQ number lookup is
+ dependent on how many entries are in the table.
+ 
+-Very few drivers should need this mapping.  At the moment, powerpc
+-iseries is the only user.
++Very few drivers should need this mapping.
+ 
+ ==== No Map ===-
+ irq_domain_add_nomap()
