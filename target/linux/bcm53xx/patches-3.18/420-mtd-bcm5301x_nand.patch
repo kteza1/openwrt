@@ -22,7 +22,7 @@
  nand-objs := nand_base.o nand_bbt.o nand_timings.o
 --- /dev/null
 +++ b/drivers/mtd/nand/bcm_nand.c
-@@ -0,0 +1,1583 @@
+@@ -0,0 +1,1622 @@
 +/*
 + * Nortstar NAND controller driver
 + *
@@ -1516,15 +1516,52 @@
 +	return 0;
 +}
 +
-+static const char * const part_probes[] = { "ofpart", "bcm47xxpart", NULL };
++static const char * const part_probe_types_def[] = { "ofpart", "bcm47xxpart", NULL };
++
++static const char * const *of_get_probes(struct device_node *dp)
++{
++	const char *cp;
++	int cplen;
++	unsigned int l;
++	unsigned int count;
++	const char **res;
++
++	cp = of_get_property(dp, "linux,part-probe", &cplen);
++	if (cp == NULL)
++		return part_probe_types_def;
++
++	count = 0;
++	for (l = 0; l != cplen; l++)
++		if (cp[l] == 0)
++			count++;
++
++	res = kzalloc((count + 1)*sizeof(*res), GFP_KERNEL);
++	count = 0;
++	while (cplen > 0) {
++		res[count] = cp;
++		l = strlen(cp) + 1;
++		cp += l;
++		cplen -= l;
++		count++;
++	}
++	return res;
++}
++
++static void of_free_probes(const char * const *probes)
++{
++	if (probes != part_probe_types_def)
++		kfree(probes);
++}
 +
 +/*
 + * Top-level init function
 + */
 +static int bcmnand_probe(struct bcma_device *core)
 +{
++	const char * const *part_probe_types;
 +	struct mtd_part_parser_data parser_data;
 +	struct device *dev = &core->dev;
++	struct device_node *dp = dev->of_node;
 +	struct bcmnand_ctrl *ctrl;
 +	int res, i, irq;
 +
@@ -1561,8 +1598,10 @@
 +	if (res)
 +		return res;
 +
-+	parser_data.of_node = dev->of_node;
-+	res = mtd_device_parse_register(&ctrl->mtd, part_probes, &parser_data, NULL, 0);
++	parser_data.of_node = dp;
++	part_probe_types = of_get_probes(dp);
++	res = mtd_device_parse_register(&ctrl->mtd, part_probe_types, &parser_data, NULL, 0);
++	of_free_probes(part_probe_types);
 +	if (res) {
 +		dev_err(dev, "Failed to register MTD device: %d\n", res);
 +		return res;
