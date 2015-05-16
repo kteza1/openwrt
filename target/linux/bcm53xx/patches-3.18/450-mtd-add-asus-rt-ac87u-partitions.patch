@@ -1,0 +1,40 @@
+--- a/arch/arm/boot/dts/bcm4709-asus-rt-ac87u.dts
++++ b/arch/arm/boot/dts/bcm4709-asus-rt-ac87u.dts
+@@ -24,6 +24,37 @@
+ 		       0x88000000 0x08000000>;
+ 	};
+ 
++	axi@18000000 {
++		nand@28000 {
++			reg = <0x00028000 0x1000>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			linux,part-probe = "bcm47xxpart";
++
++			partition@0 {
++				label = "boot";
++				reg = <0x00000000 0x00080000>;
++				read-only;
++			};
++
++			partition@80000 {
++				label = "nvram";
++				reg = <0x00080000 0x00180000>;
++			};
++
++			partition@200000 {
++				label = "firmware";
++				reg = <0x00200000 0x07cc0000>;
++			};
++
++			partition@7ec0000 {
++				label = "asus";
++				reg = <0x07ec0000 0x00140000>;
++				read-only;
++			};
++		};
++	};
++
+ 	leds {
+ 		compatible = "gpio-leds";
+ 
