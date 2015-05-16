@@ -25,7 +25,7 @@ Signed-off-by: Rafał Miłecki <zajec5@gmail.com>
  dtb-$(CONFIG_ARCH_BCM_63XX) += bcm963138dvt.dtb
 --- /dev/null
 +++ b/arch/arm/boot/dts/bcm4709-asus-rt-ac87u.dts
-@@ -0,0 +1,75 @@
+@@ -0,0 +1,97 @@
 +/*
 + * Broadcom BCM470X / BCM5301X ARM platform code.
 + * DTS for Asus RT-AC87U
@@ -80,6 +80,28 @@ Signed-off-by: Rafał Miłecki <zajec5@gmail.com>
 +				reg = <0x07ec0000 0x00140000>;
 +				read-only;
 +			};
++		};
++	};
++
++	leds {
++		compatible = "gpio-leds";
++
++		wps {
++			label = "bcm53xx:blue:wps";
++			gpios = <&chipcommon 1 GPIO_ACTIVE_LOW>;
++			linux,default-trigger = "default-off";
++		};
++
++		power {
++			label = "bcm53xx:blue:power";
++			gpios = <&chipcommon 3 GPIO_ACTIVE_LOW>;
++			linux,default-trigger = "default-on";
++		};
++
++		wan {
++			label = "bcm53xx:red:wan";
++			gpios = <&chipcommon 5 GPIO_ACTIVE_LOW>;
++			linux,default-trigger = "default-off";
 +		};
 +	};
 +
