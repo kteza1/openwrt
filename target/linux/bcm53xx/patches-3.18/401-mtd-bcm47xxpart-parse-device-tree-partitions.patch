@@ -1,0 +1,156 @@
+--- a/drivers/mtd/bcm47xxpart.c
++++ b/drivers/mtd/bcm47xxpart.c
+@@ -14,6 +14,8 @@
+ #include <linux/slab.h>
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/partitions.h>
++#include <linux/of.h>
++#include <linux/vmalloc.h>
+ 
+ #include <uapi/linux/magic.h>
+ 
+@@ -330,9 +332,143 @@ static int bcm47xxpart_parse(struct mtd_
+ 	return curr_part;
+ };
+ 
++static bool node_has_compatible(struct device_node *pp)
++{
++	return of_get_property(pp, "compatible", NULL);
++}
++
++static int parse_trxtag(struct mtd_info *master, struct mtd_partition *pparts,
++			int next_part, size_t offset, size_t size)
++{
++	struct trx_header *trx;
++	int ret, kernel_part, rootfs_part, kernel_offset, rootfs_offset;
++	size_t retlen;
++
++	/* Allocate memory for trx header */
++	trx = vmalloc(sizeof(*trx));
++	if (!trx)
++		return -ENOMEM;
++
++	/* Get the tag */
++	ret = mtd_read(master, offset, sizeof(*trx), &retlen,
++		       (void *)trx);
++
++	if (retlen != sizeof(*trx)) {
++		vfree(trx);
++		return 0;
++	}
++
++	kernel_part = next_part;
++	rootfs_part = next_part + 1;
++
++	/* We have LZMA loader if offset[2] points to sth */
++	if (trx->offset[2]) {
++		kernel_offset = 1;
++		rootfs_offset = 2;
++	}
++	else {
++		kernel_offset = 0;
++		rootfs_offset = 1;
++	}
++
++	pparts[kernel_part].name = "linux";
++	pparts[kernel_part].offset = offset + trx->offset[kernel_offset];
++	pparts[kernel_part].size = trx->offset[rootfs_offset] - trx->offset[kernel_offset];
++
++	pparts[rootfs_part].name = bcm47xxpart_trx_data_part_name(master, offset + trx->offset[rootfs_offset]);
++	pparts[rootfs_part].offset = offset + trx->offset[rootfs_offset];
++	pparts[rootfs_part].size = size - trx->offset[rootfs_offset];
++
++	vfree(trx);
++
++	return 2;
++}
++
++static int bcm47xxpart_parse_of(struct mtd_info *master,
++					   struct mtd_partition **pparts,
++					   struct mtd_part_parser_data *data)
++{
++	struct device_node *dp = data->of_node;
++	struct device_node *pp;
++	int i, nr_parts = 0;
++	const char *partname;
++	int len;
++
++	for_each_child_of_node(dp, pp) {
++		if (node_has_compatible(pp))
++			continue;
++
++		if (!of_get_property(pp, "reg", &len))
++			continue;
++
++		partname = of_get_property(pp, "label", &len);
++		if (!partname)
++			partname = of_get_property(pp, "name", &len);
++
++		if (!strcmp(partname, "firmware")) {
++			nr_parts += 2;
++		}
++
++		nr_parts++;
++	}
++
++	*pparts = kzalloc(nr_parts * sizeof(**pparts), GFP_KERNEL);
++	if (!*pparts)
++		return -ENOMEM;
++
++	i = 0;
++	for_each_child_of_node(dp, pp) {
++		const __be32 *reg;
++		int a_cells, s_cells;
++		size_t size, offset;
++
++		if (node_has_compatible(pp))
++			continue;
++
++		reg = of_get_property(pp, "reg", &len);
++		if (!reg)
++			continue;
++
++		a_cells = of_n_addr_cells(pp);
++		s_cells = of_n_size_cells(pp);
++		offset = of_read_number(reg, a_cells);
++		size = of_read_number(reg + a_cells, s_cells);
++		partname = of_get_property(pp, "label", &len);
++		if (!partname)
++			partname = of_get_property(pp, "name", &len);
++
++		if (!strcmp(partname, "firmware"))
++			i += parse_trxtag(master, *pparts, i, offset, size);
++
++		if (of_get_property(pp, "read-only", &len))
++			(*pparts)[i].mask_flags |= MTD_WRITEABLE;
++
++		if (of_get_property(pp, "lock", &len))
++			(*pparts)[i].mask_flags |= MTD_POWERUP_LOCK;
++
++		(*pparts)[i].offset = offset;
++		(*pparts)[i].size = size;
++		(*pparts)[i].name = partname;
++
++		i++;
++	}
++
++	return i;
++}
++
++static int bcm47xx_parse_partitions(struct mtd_info *master,
++				    struct mtd_partition **pparts,
++				    struct mtd_part_parser_data *data)
++{
++	if (data && data->of_node)
++		return bcm47xxpart_parse_of(master, pparts, data);
++	else
++		return bcm47xxpart_parse(master, pparts, data);
++}
++
+ static struct mtd_part_parser bcm47xxpart_mtd_parser = {
+ 	.owner = THIS_MODULE,
+-	.parse_fn = bcm47xxpart_parse,
++	.parse_fn = bcm47xx_parse_partitions,
+ 	.name = "bcm47xxpart",
+ };
+ 
