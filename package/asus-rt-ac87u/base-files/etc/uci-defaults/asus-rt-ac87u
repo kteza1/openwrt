@@ -1,0 +1,16 @@
+#!/bin/sh
+# Copyright (C) 2015 OpenWrt.org
+
+uci -q batch <<-EOF >/dev/null
+	set dhcp.@dnsmasq[-1].enable_tftp="1"
+	set dhcp.@dnsmasq[-1].tftp_root="/tftp"
+	commit dhcp
+	set network.qsoc="interface"
+	set network.qsoc.ifname="br-lan"
+	set network.qsoc.proto="static"
+	set network.qsoc.ipaddr="1.1.1.1"
+	set network.qsoc.netmask="255.255.255.252"
+	commit network
+EOF
+
+exit 0
