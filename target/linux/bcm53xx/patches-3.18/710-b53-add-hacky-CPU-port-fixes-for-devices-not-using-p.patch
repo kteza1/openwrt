@@ -8,11 +8,9 @@ Content-Transfer-Encoding: 8bit
 
 Signed-off-by: Rafał Miłecki <zajec5@gmail.com>
 ---
- drivers/net/phy/b53/b53_common.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/net/phy/b53/b53_common.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff --git a/drivers/net/phy/b53/b53_common.c b/drivers/net/phy/b53/b53_common.c
-index 2b05d5d..fd3b39c 100644
 --- a/drivers/net/phy/b53/b53_common.c
 +++ b/drivers/net/phy/b53/b53_common.c
 @@ -25,6 +25,7 @@
@@ -23,7 +21,25 @@ index 2b05d5d..fd3b39c 100644
  
  #include "b53_regs.h"
  #include "b53_priv.h"
-@@ -1313,6 +1314,11 @@ static int b53_switch_init(struct b53_device *dev)
+@@ -560,6 +561,17 @@ static int b53_switch_reset(struct b53_d
+ 				   GMII_PO_EN |
+ 				   GMII_PO_SPEED_2000M;
+ 			b53_write8(dev, B53_CTRL_PAGE, po_reg, gmii_po);
++
++			if (of_machine_is_compatible("asus,rt-ac87u")) {
++				po_reg = B53_GMII_PORT_OVERRIDE_CTRL(5);
++				b53_read8(dev, B53_CTRL_PAGE, po_reg, &gmii_po);
++				gmii_po |= GMII_PO_LINK |
++					   GMII_PO_RX_FLOW |
++					   GMII_PO_TX_FLOW |
++					   GMII_PO_EN |
++					   GMII_PO_SPEED_2000M;
++				b53_write8(dev, B53_CTRL_PAGE, po_reg, gmii_po);
++			}
+ 		}
+ 	}
+ 
+@@ -1313,6 +1325,11 @@ static int b53_switch_init(struct b53_de
  			sw_dev->cpu_port = 5;
  	}
  
@@ -35,6 +51,3 @@ index 2b05d5d..fd3b39c 100644
  	/* cpu port is always last */
  	sw_dev->ports = sw_dev->cpu_port + 1;
  	dev->enabled_ports |= BIT(sw_dev->cpu_port);
--- 
-1.8.4.5
-
