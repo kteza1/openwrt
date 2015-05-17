@@ -1,0 +1,15 @@
+--- a/arch/arm/boot/dts/bcm4709-asus-rt-ac87u.dts
++++ b/arch/arm/boot/dts/bcm4709-asus-rt-ac87u.dts
+@@ -75,6 +75,12 @@
+ 			gpios = <&chipcommon 5 GPIO_ACTIVE_LOW>;
+ 			linux,default-trigger = "default-off";
+ 		};
++
++		quantenna {
++			label = "quantenna";
++			gpios = <&chipcommon 8 GPIO_ACTIVE_HIGH>;
++			linux,default-trigger = "default-on";
++		};
+ 	};
+ 
+ 	chipcommonA {
