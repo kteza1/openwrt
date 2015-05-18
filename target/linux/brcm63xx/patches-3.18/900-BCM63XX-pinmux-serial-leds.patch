@@ -1,0 +1,51 @@
+diff -uprN a/arch/mips/bcm63xx/boards/board_common.c b/arch/mips/bcm63xx/boards/board_common.c
+--- a/arch/mips/bcm63xx/boards/board_common.c	2015-03-16 16:07:28.171114109 +0100
++++ b/arch/mips/bcm63xx/boards/board_common.c	2015-05-18 22:53:49.967864529 +0200
+@@ -222,6 +222,47 @@ int __init board_register_devices(void)
+ 	}
+ #endif
+ 
++	/* Serial LEDs pinmux */
++	if (board_of_device_present("leds0")) {
++		u32 val, val2;
++
++		val = bcm_gpio_readl(GPIO_MODE_REG);
++		if (BCMCPU_IS_6318()) {
++			val |= BIT(6) | BIT(7);
++
++			#define PINMUX_EPHY2_ACT_LED (1 << (6 << 1))
++			#define PINMUX_EPHY3_ACT_LED (1 << (7 << 1))
++			#define PINMUX_SERIAL_LED_DATA (3 << (6 << 1))
++			#define PINMUX_SERIAL_LED_CLK (3 << (7 << 1))
++
++			val2 = bcm_gpio_readl(GPIO_PINMUX_SEL0_6318);
++			val2 &= ~(PINMUX_EPHY2_ACT_LED | PINMUX_EPHY3_ACT_LED);
++			val2 |= (PINMUX_SERIAL_LED_DATA | PINMUX_SERIAL_LED_CLK);
++			bcm_gpio_writel(val2, GPIO_PINMUX_SEL0_6318);
++		}
++		else if (BCMCPU_IS_6328())
++			val |= BIT(6) | BIT(7);
++		else if (BCMCPU_IS_63268())
++			val |= BIT(0) | BIT(1);
++		else if (BCMCPU_IS_6358()) {
++			val |= BIT(10);
++
++			val2 = bcm_gpio_readl(GPIO_CTL_LO_REG);
++			val2 |= BIT(6) | BIT(7);
++			bcm_gpio_writel(val2, GPIO_CTL_LO_REG);
++		}
++		else if (BCMCPU_IS_6362())
++			val |= BIT(2) | BIT(3);
++		else if (BCMCPU_IS_6368()) {
++			val |= BIT(3) | BIT(4);
++
++			val2 = bcm_gpio_readl(GPIO_CTL_LO_REG);
++			val2 |= BIT(3) | BIT(4);
++			bcm_gpio_writel(val2, GPIO_CTL_LO_REG);
++		}
++		bcm_gpio_writel(val, GPIO_MODE_REG);
++	}
++
+ 	bcm63xx_gpio_init();
+ 
+ 	if (board.has_uart0)
