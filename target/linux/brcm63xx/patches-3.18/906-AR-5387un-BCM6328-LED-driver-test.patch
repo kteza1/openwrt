@@ -1,0 +1,12 @@
+diff -uprN a/arch/mips/bcm63xx/boards/board_common.c b/arch/mips/bcm63xx/boards/board_common.c
+--- a/arch/mips/bcm63xx/boards/board_common.c	2015-05-21 19:40:48.040647533 +0200
++++ b/arch/mips/bcm63xx/boards/board_common.c	2015-05-21 19:43:54.930484281 +0200
+@@ -123,6 +123,8 @@ void __init board_early_setup(const stru
+ 			val |= GPIO_MODE_6358_ENET1_MII_CLK_INV;
+ 	}
+ 
++	val |= BIT(1) | BIT(4) | BIT(7) | BIT(8) | BIT(11);
++
+ 	bcm_gpio_writel(val, GPIO_MODE_REG);
+ 
+ #if IS_ENABLED(CONFIG_USB)
