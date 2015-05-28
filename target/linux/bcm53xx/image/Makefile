@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2013 OpenWrt.org
+# Copyright (C) 2013-2015 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -56,78 +56,103 @@ endef
 
 define Build/asus-trx
 	$(STAGING_DIR_HOST)/bin/asustrx \
-		-p $(PRODUCTID) -i $@ -o $@.new
+		-p $(ASUS_ID) -i $@ -o $@.new
 	mv $@.new $@
 endef
 
 define Build/netgear-chk
 	$(STAGING_DIR_HOST)/bin/mkchkimg \
-		-o $@.new -k $@ -b $(BOARD_ID) -r $(REGION)
+		-o $@.new -k $@ -b $(NETGEAR_ID) -r $(NETGEAR_REGION)
 	mv $@.new $@
 endef
-
-DEVICE_VARS += DT PRODUCTID BOARD_ID REGION
 
 define Device/Default
   # .dtb files are prefixed by SoC type, e.g. bcm4708- which is not included in device/image names
   # extract the full dtb name based on the device info
   DT := $(patsubst %.dtb,%,$(notdir $(wildcard $(if $(IB),$(KDIR),$(DTS_DIR))/*-$(1).dtb)))
+  PROFILES = Generic $$(DEVICE_PROFILE)
   KERNEL := kernel-bin | append-dtb | lzma-d16
   FILESYSTEMS := squashfs
   KERNEL_NAME := zImage
   IMAGE_NAME = $$(IMAGE_PREFIX)-$$(1).$$(2)
+  DEVICE_PROFILE :=
+endef
+DEVICE_VARS += DT DEVICE_PROFILE
+
+define Device/trx_nand
   IMAGES := trx
   IMAGE/trx := trx-nand
 endef
 
-define Device/asus
-  IMAGES := trx
-  IMAGE/trx := trx-nand | asus-trx
-endef
-
-define AsusDevice
-  define Device/asus-$(1)
-	$$(Device/asus)
-	PRODUCTID := $(2)
-  endef
-  TARGET_DEVICES += asus-$(1)
-endef
-
-define Device/netgear
-  IMAGES := chk
-  IMAGE/chk := trx-nand | netgear-chk
-  REGION := 1
-endef
-
-define Device/netgear-r6250
-  $(Device/netgear)
-  BOARD_ID := U12H245T00_NETGEAR
-endef
-
-define Device/netgear-r6300-v2
-  $(Device/netgear)
-  BOARD_ID := U12H240T00_NETGEAR
-endef
-
-define Device/netgear-r8000
-  $(Device/netgear)
-  BOARD_ID := U12H315T00_NETGEAR
-endef
-
-define Device/smartrg-sr400ac
+define Device/trx_serial
   IMAGES := trx
   IMAGE/trx := trx-serial
 endef
 
-TARGET_DEVICES += \
-	buffalo-wzr-1750dhp buffalo-wzr-600dhp2 buffalo-wzr-900dhp \
-	buffalo-wxr-1900dhp \
-	netgear-r6250 netgear-r6300-v2 netgear-r8000 \
-	smartrg-sr400ac
+define Device/asus
+  IMAGES := trx
+  IMAGE/trx := $$(IMAGE/trx) | asus-trx
+  ASUS_ID :=
+endef
+DEVICE_VARS += ASUS_ID
 
-$(eval $(call AsusDevice,rt-ac56u,RT-AC56U))
-$(eval $(call AsusDevice,rt-ac68u,RT-AC68U))
-$(eval $(call AsusDevice,rt-ac87u,RT-AC87U))
-$(eval $(call AsusDevice,rt-n18u,RT-N18U))
+define Device/netgear
+  IMAGES := chk
+  IMAGE/chk := $$(IMAGE/trx) | netgear-chk
+  NETGEAR_ID :=
+  NETGEAR_REGION :=
+endef
+DEVICE_VARS += NETGEAR_ID NETGEAR_REGION
+
+# $(1) = trx image
+# $(2) = device name
+define GenericDevice
+  define Device/$(2)
+    $$(Device/$(1))
+    DEVICE_PROFILE := $(2)
+  endef
+  TARGET_DEVICES += $(2)
+endef
+
+# $(1) = trx image
+# $(2) = device name
+# $(3) = asus id
+define AsusDevice
+  define Device/asus-$(2)
+    $$(Device/$(1))
+	$$(Device/asus)
+    DEVICE_PROFILE := asus-$(2)
+    ASUS_ID := $(3)
+  endef
+  TARGET_DEVICES += asus-$(2)
+endef
+
+# $(1) = trx image
+# $(2) = device name
+# $(3) = netgear id
+# $(4) = netgear region
+define NetgearDevice
+  define Device/netgear-$(2)
+    $$(Device/$(1))
+	$$(Device/netgear)
+    DEVICE_PROFILE := netgear-$(2)
+    NETGEAR_ID := $(3)
+    NETGEAR_REGION := $(4)
+  endef
+  TARGET_DEVICES += netgear-$(2)
+endef
+
+$(eval $(call AsusDevice,trx_nand,rt-ac56u,RT-AC56U))
+$(eval $(call AsusDevice,trx_nand,rt-ac68u,RT-AC68U))
+$(eval $(call AsusDevice,trx_nand,rt-ac87u,RT-AC87U))
+$(eval $(call AsusDevice,trx_nand,rt-n18u,RT-N18U))
+$(eval $(call GenericDevice,trx_nand,buffalo-wxr-1900dhp))
+$(eval $(call GenericDevice,trx_nand,buffalo-wzr-1750dhp))
+$(eval $(call GenericDevice,trx_nand,buffalo-wzr-600dhp2))
+$(eval $(call GenericDevice,trx_nand,buffalo-wzr-900dhp))
+$(eval $(call GenericDevice,trx_serial,smartrg-sr400ac))
+$(eval $(call NetgearDevice,trx_nand,r6250,U12H245T00_NETGEAR,1))
+$(eval $(call NetgearDevice,trx_nand,r6300-v2,U12H240T00_NETGEAR,1))
+$(eval $(call NetgearDevice,trx_nand,r8000,U12H315T00_NETGEAR,1))
 
 $(eval $(call BuildImage))
