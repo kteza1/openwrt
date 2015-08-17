@@ -260,6 +260,7 @@ platform_check_image() {
 		return 1
 		;;
 
+	bsb | \
 	dir-825-b1 | \
 	tew-673gru)
 		dir825b_check_image "$1" && return 0
@@ -310,6 +311,7 @@ platform_check_image() {
 	el-mini | \
 	gl-inet | \
 	mc-mac1200r | \
+	onion-omega | \
 	oolite | \
 	smart-300 | \
 	tl-mr10u | \
